@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ConTecAd — Sistema de Facturación</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; font-size: 14px; color: #1a1a1a; background: #f5f5f5; }
+.app { max-width: 960px; margin: 0 auto; padding: 1.5rem 1rem; }
+.nav { display: flex; gap: 8px; margin-bottom: 1.5rem; border-bottom: 1px solid #ddd; padding-bottom: 0.75rem; }
+.nav button { background: transparent; border: 1px solid transparent; padding: 6px 18px; border-radius: 6px; font-size: 13px; cursor: pointer; color: #555; }
+.nav button.active { background: #fff; border-color: #ccc; color: #111; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.nav button:hover:not(.active) { background: #eee; }
+.section { display: none; } .section.active { display: block; }
+label { font-size: 12px; color: #555; display: block; margin-bottom: 4px; font-weight: 500; }
+input { width: 100%; padding: 7px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 13px; background: #fff; color: #111; font-family: Arial, sans-serif; }
+input:focus { outline: none; border-color: #4a90d9; box-shadow: 0 0 0 2px rgba(74,144,217,.15); }
+input[readonly] { background: #f0f0f0; color: #666; cursor: default; }
+.row { display: grid; gap: 12px; margin-bottom: 12px; }
+.c2 { grid-template-columns: 1fr 1fr; }
+.c3 { grid-template-columns: 1fr 1fr 1fr; }
+.c4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+.card { background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 1rem; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
+.ct { font-size: 11px; font-weight: 700; color: #888; margin-bottom: 14px; text-transform: uppercase; letter-spacing: .06em; }
+.btn { padding: 7px 16px; border-radius: 6px; font-size: 13px; cursor: pointer; border: 1px solid #ccc; background: #fff; color: #333; font-family: Arial,sans-serif; }
+.btn:hover { background: #f0f0f0; }
+.bprimary { background: #2563eb; border-color: #2563eb; color: #fff; font-weight: 600; }
+.bprimary:hover { background: #1d4ed8; }
+.bdanger { color: #dc2626; border-color: #fca5a5; }
+.bdanger:hover { background: #fef2f2; }
+.bsuccess { background: #16a34a; border-color: #16a34a; color: #fff; font-weight: 600; }
+.bsuccess:hover { background: #15803d; }
+.bgray { background: #f3f4f6; border-color: #d1d5db; color: #374151; }
+.bgray:hover { background: #e5e7eb; }
+.itable { width: 100%; border-collapse: collapse; margin-bottom: 12px; table-layout: fixed; }
+.itable th { font-size: 11px; font-weight: 600; color: #555; text-align: left; padding: 7px 8px; border-bottom: 2px solid #e0e0e0; background: #f9f9f9; }
+.itable td { padding: 5px 6px; border-bottom: 1px solid #eee; vertical-align: middle; }
+.itable td input { border: none; padding: 4px 6px; background: transparent; color: #111; width: 100%; }
+.itable td input:focus { background: #f0f7ff; border-radius: 4px; outline: 1px solid #93c5fd; }
+.tblock { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; margin-top: 12px; padding-top: 8px; border-top: 1px solid #eee; }
+.trow { display: flex; gap: 16px; font-size: 13px; }
+.trow span:first-child { color: #666; min-width: 190px; text-align: right; }
+.trow span:last-child { min-width: 110px; text-align: right; font-weight: 600; }
+.tgrand { font-size: 15px; border-top: 2px solid #333; padding-top: 6px; margin-top: 4px; }
+.frow { background: #f9f9f9; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.frow:hover { background: #eff6ff; border-color: #bfdbfe; }
+.empty { text-align: center; padding: 2.5rem; color: #aaa; font-size: 13px; }
+.alert { padding: 10px 16px; border-radius: 7px; font-size: 13px; margin-bottom: 12px; display: none; }
+.asuccess { background: #f0fdf4; color: #166534; border: 1px solid #86efac; }
+.metric { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 1.2rem; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
+.mval { font-size: 26px; font-weight: 700; color: #1a1a1a; }
+.mlbl { font-size: 12px; color: #888; margin-top: 4px; }
+.abtns { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.tauto { font-size: 10px; background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 10px; margin-left: 6px; font-weight: 600; }
+.banner { background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; border-radius: 8px; padding: 10px 16px; font-size: 13px; margin-bottom: 1.2rem; }
+.header-logo { display: flex; align-items: center; gap: 14px; margin-bottom: 1.2rem; }
+.logo-circle { width: 42px; height: 42px; border-radius: 50%; background: #2563eb; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: #fff; flex-shrink: 0; }
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="header-logo">
+  <div class="logo-circle">TA</div>
+  <div>
+    <div style="font-weight:700;font-size:16px;color:#111;">ConTecAd — Sistema de Facturación</div>
+    <div style="font-size:12px;color:#888;">Consultores en Tecnología Administrativa</div>
+  </div>
+</div>
+
+<div class="banner">⚠ <strong>Modo de pruebas</strong> — Las facturas generadas no son de producción. Cuando estés listo, indícame la fecha de inicio y el número de factura inicial para activar producción.</div>
+
+<div class="nav">
+  <button class="active" onclick="showTab('nueva',this)">Nueva Factura</button>
+  <button onclick="showTab('facturas',this)">Facturas Emitidas</button>
+  <button onclick="showTab('reporte',this)">Reporte</button>
+</div>
+
+<div id="alert-ok" class="alert asuccess">✓ Factura guardada correctamente.</div>
+
+<!-- NUEVA FACTURA -->
+<div id="tab-nueva" class="section active">
+  <div class="card">
+    <div class="ct">Datos de la Factura</div>
+    <div class="row c3">
+      <div><label>N° de Factura</label><input type="text" id="f-num" placeholder="000-001-01-00-004555"></div>
+      <div><label>Fecha</label><input type="date" id="f-fecha"></div>
+      <div><label>N° de Caso</label><input type="text" id="f-caso" placeholder="N° Caso"></div>
+    </div>
+    <div class="row c3">
+      <div><label>N° de Orden</label><input type="text" id="f-orden" placeholder="N° Orden"></div>
+      <div>
+        <label>Cambio USD → L <span style="font-size:10px;color:#aaa;">(tasa del día)</span></label>
+        <input type="number" id="f-cambio" step="0.0001" min="0">
+      </div>
+      <div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ct">Datos del Cliente</div>
+    <div class="row c2">
+      <div><label>Cliente</label><input type="text" id="f-cliente" placeholder="Nombre del cliente o empresa"></div>
+      <div><label>RTN</label><input type="text" id="f-rtn" placeholder="RTN del cliente"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ct">Detalle de Artículos / Servicios</div>
+    <table class="itable">
+      <colgroup><col style="width:60px"><col><col style="width:115px"><col style="width:115px"><col style="width:105px"><col style="width:36px"></colgroup>
+      <thead><tr><th>Cant.</th><th>Descripción</th><th>Precio Unit. (L)</th><th>Descuento (L)</th><th style="text-align:right;">Total</th><th></th></tr></thead>
+      <tbody id="items-body"></tbody>
+    </table>
+    <button class="btn bgray" onclick="addItem()" style="font-size:12px;">+ Agregar línea</button>
+    <div class="tblock">
+      <div class="trow"><span>Sub-total:</span><span id="t-sub">L 0.00</span></div>
+      <div class="trow"><span>Importe Exonerado:</span><span id="t-exo">L 0.00</span></div>
+      <div class="trow"><span>Importe Exento:</span><span id="t-ext">L 0.00</span></div>
+      <div class="trow"><span>Importe Gravado 15%:</span><span id="t-g15">L 0.00</span></div>
+      <div class="trow"><span>Importe Gravado 18%:</span><span id="t-g18">L 0.00</span></div>
+      <div class="trow"><span>ISV 15%:</span><span id="t-i15">L 0.00</span></div>
+      <div class="trow"><span>ISV 18%:</span><span id="t-i18">L 0.00</span></div>
+      <div class="trow tgrand"><span>Total a Pagar:</span><span id="t-total">L 0.00</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ct">Impuestos</div>
+    <div class="row c4">
+      <div><label>Exonerado (L)</label><input type="number" id="f-exo" value="0" oninput="recalc()" min="0"></div>
+      <div><label>Exento (L)</label><input type="number" id="f-ext" value="0" oninput="recalc()" min="0"></div>
+      <div><label>Gravado 15% (L)</label><input type="number" id="f-g15" value="0" oninput="recalc()" min="0"></div>
+      <div><label>Gravado 18% (L)</label><input type="number" id="f-g18" value="0" oninput="recalc()" min="0"></div>
+    </div>
+    <div class="row c2" style="margin-bottom:0;">
+      <div><label>Valor en Letras <span class="tauto">automático</span></label><input type="text" id="f-letras" readonly placeholder="Se genera del Total a Pagar"></div>
+      <div><label>Observaciones</label><input type="text" id="f-obs" placeholder="Notas adicionales"></div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:.5rem;flex-wrap:wrap;">
+    <button class="btn" onclick="clearForm()">Limpiar</button>
+    <button class="btn bprimary" onclick="saveFactura()">Guardar Factura</button>
+  </div>
+</div>
+
+<!-- FACTURAS EMITIDAS -->
+<div id="tab-facturas" class="section">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;gap:12px;flex-wrap:wrap;">
+    <div style="font-size:13px;color:#888;">Facturas guardadas en este dispositivo</div>
+    <input type="text" id="search-input" placeholder="Buscar por cliente, N° o caso..." style="width:280px;" oninput="renderList()">
+  </div>
+  <div id="facturas-list"></div>
+</div>
+
+<!-- REPORTE -->
+<div id="tab-reporte" class="section">
+  <div class="row c3" style="margin-bottom:1.5rem;">
+    <div class="metric"><div class="mval" id="r-tf">0</div><div class="mlbl">Facturas emitidas</div></div>
+    <div class="metric"><div class="mval" id="r-cl">0</div><div class="mlbl">Clientes distintos</div></div>
+    <div class="metric"><div class="mval" id="r-mn">L 0</div><div class="mlbl">Monto total facturado</div></div>
+  </div>
+  <div class="card">
+    <div class="ct">Lista de facturas emitidas</div>
+    <div id="reporte-tabla"></div>
+  </div>
+</div>
+
+</div><!-- .app -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+const DB_KEY='contecad_facturas_v1';
+const CAMBIO_DEFAULT=26.56;
+function getDB(){try{return JSON.parse(localStorage.getItem(DB_KEY)||'[]');}catch(e){return[];}}
+function saveDB(d){localStorage.setItem(DB_KEY,JSON.stringify(d));}
+let items=[],editId=null;
+
+// ── Número a letras ──────────────────────────────────────────────
+const UNI=['','un','dos','tres','cuatro','cinco','seis','siete','ocho','nueve','diez','once','doce','trece','catorce','quince','dieciséis','diecisiete','dieciocho','diecinueve','veinte','veintiún','veintidós','veintitrés','veinticuatro','veinticinco','veintiséis','veintisiete','veintiocho','veintinueve'];
+const DEC=['','','veinte','treinta','cuarenta','cincuenta','sesenta','setenta','ochenta','noventa'];
+const CEN=['','ciento','doscientos','trescientos','cuatrocientos','quinientos','seiscientos','setecientos','ochocientos','novecientos'];
+function eL(n){
+  if(n===0)return'';if(n<30)return UNI[n];
+  if(n<100){const d=Math.floor(n/10),u=n%10;return DEC[d]+(u>0?' y '+UNI[u]:'');}
+  if(n===100)return'cien';
+  if(n<1000){const c=Math.floor(n/100),r=n%100;return CEN[c]+(r>0?' '+eL(r):'');}
+  if(n<2000)return'mil'+(n%1000>0?' '+eL(n%1000):'');
+  if(n<1000000){const m=Math.floor(n/1000),r=n%1000;return eL(m)+' mil'+(r>0?' '+eL(r):'');}
+  if(n<2000000)return'un millón'+(n%1000000>0?' '+eL(n%1000000):'');
+  const m=Math.floor(n/1000000),r=n%1000000;return eL(m)+' millones'+(r>0?' '+eL(r):'');
+}
+function numL(n){
+  n=Math.round(n*100)/100;if(n===0)return'cero';
+  const e=Math.floor(n),d=Math.round((n-e)*100);
+  let r=e===1?'un':eL(e);r=r.charAt(0).toUpperCase()+r.slice(1);
+  return r+' Lempiras'+(d>0?' con '+(d<10?'0'+d:d)+'/100':' exactos');
+}
+
+function showTab(tab,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  if(btn)btn.classList.add('active');
+  if(tab==='facturas')renderList();
+  if(tab==='reporte')renderReporte();
+}
+
+function addItem(){items.push({id:Date.now(),cant:1,desc:'',precio:0,desc_val:0,total:0});renderItems();}
+function removeItem(id){items=items.filter(i=>i.id!==id);renderItems();recalc();}
+
+function renderItems(){
+  const tb=document.getElementById('items-body');tb.innerHTML='';
+  items.forEach(it=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td><input type="number" value="${it.cant}" min="1" oninput="upd(${it.id},'cant',this.value)"></td>
+      <td><input type="text" value="${it.desc}" placeholder="Descripción del servicio o producto" oninput="upd(${it.id},'desc',this.value)"></td>
+      <td><input type="number" value="${it.precio}" min="0" step="0.01" oninput="upd(${it.id},'precio',this.value)"></td>
+      <td><input type="number" value="${it.desc_val}" min="0" step="0.01" oninput="upd(${it.id},'desc_val',this.value)"></td>
+      <td style="font-weight:600;text-align:right;padding-right:10px;font-size:12px;">${fL(it.total)}</td>
+      <td><button onclick="removeItem(${it.id})" style="background:none;border:none;cursor:pointer;color:#dc2626;font-size:16px;padding:2px 6px;line-height:1;">×</button></td>`;
+    tb.appendChild(tr);
+  });
+}
+
+function upd(id,f,v){
+  const it=items.find(i=>i.id===id);if(!it)return;
+  if(f==='cant')it.cant=parseFloat(v)||1;
+  else if(f==='precio')it.precio=parseFloat(v)||0;
+  else if(f==='desc_val')it.desc_val=parseFloat(v)||0;
+  else it.desc=v;
+  it.total=Math.max(0,it.cant*it.precio-it.desc_val);
+  const rows=document.querySelectorAll('#items-body tr');
+  items.forEach((x,i)=>{if(rows[i])rows[i].querySelectorAll('td')[4].textContent=fL(x.total);});
+  recalc();
+}
+
+function fL(n){return'L '+(parseFloat(n)||0).toLocaleString('es-HN',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function f2(n){return(parseFloat(n)||0).toLocaleString('es-HN',{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+function recalc(){
+  const sub=items.reduce((a,i)=>a+i.total,0);
+  const g15=parseFloat(document.getElementById('f-g15').value)||0;
+  const g18=parseFloat(document.getElementById('f-g18').value)||0;
+  const exo=parseFloat(document.getElementById('f-exo').value)||0;
+  const ext=parseFloat(document.getElementById('f-ext').value)||0;
+  const i15=g15*.15,i18=g18*.18,total=sub+i15+i18;
+  document.getElementById('t-sub').textContent=fL(sub);
+  document.getElementById('t-exo').textContent=fL(exo);
+  document.getElementById('t-ext').textContent=fL(ext);
+  document.getElementById('t-g15').textContent=fL(g15);
+  document.getElementById('t-g18').textContent=fL(g18);
+  document.getElementById('t-i15').textContent=fL(i15);
+  document.getElementById('t-i18').textContent=fL(i18);
+  document.getElementById('t-total').textContent=fL(total);
+  document.getElementById('f-letras').value=total>0?numL(total):'';
+}
+
+function getFD(){
+  const sub=items.reduce((a,i)=>a+i.total,0);
+  const g15=parseFloat(document.getElementById('f-g15').value)||0;
+  const g18=parseFloat(document.getElementById('f-g18').value)||0;
+  const i15=g15*.15,i18=g18*.18;
+  return{id:editId||Date.now(),
+    num:document.getElementById('f-num').value.trim(),
+    fecha:document.getElementById('f-fecha').value,
+    caso:document.getElementById('f-caso').value,
+    orden:document.getElementById('f-orden').value,
+    cambio:document.getElementById('f-cambio').value,
+    cliente:document.getElementById('f-cliente').value,
+    rtn:document.getElementById('f-rtn').value,
+    items:JSON.parse(JSON.stringify(items)),
+    exo:parseFloat(document.getElementById('f-exo').value)||0,
+    ext:parseFloat(document.getElementById('f-ext').value)||0,
+    g15,g18,i15,i18,subtotal:sub,total:sub+i15+i18,
+    letras:document.getElementById('f-letras').value,
+    obs:document.getElementById('f-obs').value,
+    creado:new Date().toISOString()};
+}
+
+function saveFactura(){
+  const f=getFD();
+  if(!f.cliente){alert('Por favor ingresa el nombre del cliente.');return;}
+  const db=getDB(),idx=db.findIndex(x=>x.id===f.id);
+  if(idx>=0)db[idx]=f;else db.unshift(f);
+  saveDB(db);
+  const al=document.getElementById('alert-ok');al.style.display='block';
+  setTimeout(()=>al.style.display='none',3000);
+  clearForm();editId=null;
+}
+
+function clearForm(){
+  ['f-num','f-caso','f-orden','f-cliente','f-rtn','f-letras','f-obs'].forEach(id=>document.getElementById(id).value='');
+  ['f-exo','f-ext','f-g15','f-g18'].forEach(id=>document.getElementById(id).value='0');
+  document.getElementById('f-fecha').value=new Date().toISOString().split('T')[0];
+  document.getElementById('f-cambio').value=CAMBIO_DEFAULT;
+  items=[];editId=null;renderItems();recalc();
+}
+
+function renderList(){
+  const db=getDB(),q=(document.getElementById('search-input')?.value||'').toLowerCase();
+  const fil=q?db.filter(f=>f.cliente.toLowerCase().includes(q)||(f.num||'').toLowerCase().includes(q)||(f.caso||'').toLowerCase().includes(q)):db;
+  const cont=document.getElementById('facturas-list');
+  if(!fil.length){cont.innerHTML='<div class="empty">No hay facturas registradas aún.</div>';return;}
+  cont.innerHTML=fil.map(f=>`
+    <div class="frow">
+      <div style="min-width:0;flex:1;">
+        <div style="font-weight:600;font-size:13px;">${f.num?f.num+' — ':''}${f.cliente}</div>
+        <div style="font-size:12px;color:#888;margin-top:2px;">${f.fecha||'Sin fecha'} · RTN: ${f.rtn||'—'}${f.caso?' · Caso: '+f.caso:''} · ${f.items?.length||0} línea(s)</div>
+      </div>
+      <div class="abtns">
+        <span style="font-weight:700;font-size:14px;white-space:nowrap;color:#111;">${fL(f.total)}</span>
+        <button class="btn bgray" onclick="editF(${f.id})" style="font-size:12px;padding:5px 10px;">Editar</button>
+        <button class="btn bsuccess" onclick="genPDF(${f.id})" style="font-size:12px;padding:5px 10px;">⬇ PDF</button>
+        <button class="btn bgray" onclick="printF(${f.id})" style="font-size:12px;padding:5px 10px;">🖨 Imprimir</button>
+        <button class="btn bdanger" onclick="delF(${f.id})" style="font-size:12px;padding:5px 10px;">Eliminar</button>
+      </div>
+    </div>`).join('');
+}
+
+function editF(id){
+  const f=getDB().find(x=>x.id===id);if(!f)return;
+  editId=f.id;
+  document.getElementById('f-num').value=f.num||'';
+  document.getElementById('f-fecha').value=f.fecha||'';
+  document.getElementById('f-caso').value=f.caso||'';
+  document.getElementById('f-orden').value=f.orden||'';
+  document.getElementById('f-cambio').value=f.cambio||CAMBIO_DEFAULT;
+  document.getElementById('f-cliente').value=f.cliente||'';
+  document.getElementById('f-rtn').value=f.rtn||'';
+  document.getElementById('f-exo').value=f.exo||0;
+  document.getElementById('f-ext').value=f.ext||0;
+  document.getElementById('f-g15').value=f.g15||0;
+  document.getElementById('f-g18').value=f.g18||0;
+  document.getElementById('f-obs').value=f.obs||'';
+  items=JSON.parse(JSON.stringify(f.items||[]));
+  renderItems();recalc();
+  showTab('nueva',document.querySelectorAll('.nav button')[0]);
+}
+
+function delF(id){
+  if(!confirm('¿Eliminar esta factura? Esta acción no se puede deshacer.'))return;
+  saveDB(getDB().filter(x=>x.id!==id));renderList();
+}
+
+function renderReporte(){
+  const db=getDB();
+  const cl=new Set(db.map(f=>f.cliente)).size;
+  const mn=db.reduce((a,f)=>a+(f.total||0),0);
+  document.getElementById('r-tf').textContent=db.length;
+  document.getElementById('r-cl').textContent=cl;
+  document.getElementById('r-mn').textContent=fL(mn);
+  const cont=document.getElementById('reporte-tabla');
+  if(!db.length){cont.innerHTML='<div class="empty">No hay facturas aún.</div>';return;}
+  cont.innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:13px;">
+  <thead><tr style="background:#f9f9f9;">
+    <th style="padding:8px;text-align:left;border-bottom:2px solid #e0e0e0;">N° Factura</th>
+    <th style="padding:8px;text-align:left;border-bottom:2px solid #e0e0e0;">Fecha</th>
+    <th style="padding:8px;text-align:left;border-bottom:2px solid #e0e0e0;">Cliente</th>
+    <th style="padding:8px;text-align:left;border-bottom:2px solid #e0e0e0;">RTN</th>
+    <th style="padding:8px;text-align:right;border-bottom:2px solid #e0e0e0;">Total</th>
+  </tr></thead>
+  <tbody>${db.map((f,i)=>`<tr style="background:${i%2===0?'#fff':'#fafafa'};">
+    <td style="padding:8px;border-bottom:1px solid #eee;">${f.num||'—'}</td>
+    <td style="padding:8px;border-bottom:1px solid #eee;">${f.fecha||'—'}</td>
+    <td style="padding:8px;border-bottom:1px solid #eee;font-weight:500;">${f.cliente}</td>
+    <td style="padding:8px;border-bottom:1px solid #eee;color:#888;">${f.rtn||'—'}</td>
+    <td style="padding:8px;border-bottom:1px solid #eee;text-align:right;font-weight:600;">${fL(f.total)}</td>
+  </tr>`).join('')}</tbody>
+  <tfoot><tr style="background:#f0f7ff;">
+    <td colspan="4" style="padding:10px 8px;font-weight:700;text-align:right;">Total facturado:</td>
+    <td style="padding:10px 8px;font-weight:700;text-align:right;font-size:15px;">${fL(mn)}</td>
+  </tr></tfoot></table>`;
+}
+
+// ── Generación PDF ───────────────────────────────────────────────
+function buildPDF(f){
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'letter'});
+  const W=215.9,ml=12,mr=12,cw=W-ml-mr;
+
+  // Línea superior
+  doc.setFillColor(40,40,40);doc.rect(ml,10,cw,0.5,'F');
+
+  // Encabezado empresa
+  doc.setFont('helvetica','bold');doc.setFontSize(11.5);doc.setTextColor(20,20,20);
+  doc.text('CONSULTORES EN TECNOLOGÍA ADMINISTRATIVA',W/2,17,{align:'center'});
+  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(80,80,80);
+  doc.text('Residencial Bella Oriente, Bloque G, casa # 19  |  Distrito Central, Francisco Morazán',W/2,22,{align:'center'});
+  doc.text('E-mail: soporte@contecad.com  |  Tel: 2255-4271  |  R.T.N.: 08019008191463',W/2,26.5,{align:'center'});
+
+  // Círculo logo
+  doc.setDrawColor(60,60,60);doc.setLineWidth(0.6);doc.circle(ml+13,20,11);
+  doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(20,20,20);
+  doc.text('TA',ml+13,21.5,{align:'center'});
+  doc.setFontSize(6);doc.setFont('helvetica','normal');doc.setTextColor(60,60,60);
+  doc.text('ConTecAd',ml+13,25.5,{align:'center'});
+
+  doc.setDrawColor(40,40,40);doc.setLineWidth(0.4);doc.line(ml,32,W-mr,32);
+
+  // Fecha / Caso
+  const fd=f.fecha?(()=>{const[y,m,d]=f.fecha.split('-');return`${d}/${m}/${y}`;})():'___';
+  doc.setFontSize(9);doc.setTextColor(20,20,20);
+  doc.text(`Fecha: ${fd}`,ml,37);
+  doc.text(`N° de Caso: ${f.caso||'_____________'}`,W/2,37);
+
+  // Cliente / RTN / Orden / Cambio
+  doc.text(`Cliente: ${f.cliente||''}`,ml,43);
+  doc.text(`RTN: ${f.rtn||''}`,ml,48.5);
+  doc.text(`N° de Orden: ${f.orden||''}`,W/2,48.5);
+  doc.text(`Cambio: L ${f2(f.cambio)} x $1.00`,W-mr-68,48.5);
+
+  // Cabecera tabla
+  const ty=54;
+  doc.setFillColor(200,200,200);doc.rect(ml,ty,cw,7,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor(20,20,20);
+  const cx=[ml+2,ml+22,ml+cw*.55,ml+cw*.72,ml+cw*.865];
+  doc.text('CANT.',cx[0],ty+5);
+  doc.text('DESCRIPCION',cx[1],ty+5);
+  doc.text('PRECIO UNIT.',cx[2],ty+5);
+  doc.text('DESC./REBAJAS',cx[3],ty+5);
+  doc.text('TOTAL',cx[4],ty+5);
+
+  // Filas de ítems
+  doc.setFont('helvetica','normal');doc.setFontSize(8.5);
+  let ry=ty+7;const rh=7;
+  (f.items||[]).slice(0,20).forEach((it,i)=>{
+    if(i%2===0){doc.setFillColor(249,249,249);doc.rect(ml,ry,cw,rh,'F');}
+    doc.setDrawColor(210,210,210);doc.setLineWidth(0.15);doc.rect(ml,ry,cw,rh);
+    doc.setTextColor(20,20,20);
+    doc.text(String(it.cant),cx[0]+8,ry+5,{align:'right'});
+    doc.text((it.desc||'').substring(0,56),cx[1],ry+5);
+    doc.text(f2(it.precio),cx[2]+30,ry+5,{align:'right'});
+    doc.text(f2(it.desc_val),cx[3]+26,ry+5,{align:'right'});
+    doc.text(f2(it.total),W-mr-2,ry+5,{align:'right'});
+    ry+=rh;
+  });
+  // Relleno filas vacías
+  const minEnd=ty+7+12*rh;
+  while(ry<minEnd){
+    doc.setFillColor(255,255,255);doc.rect(ml,ry,cw,rh,'F');
+    doc.setDrawColor(210,210,210);doc.setLineWidth(0.15);doc.rect(ml,ry,cw,rh);
+    ry+=rh;
+  }
+
+  // Fila sub-total
+  doc.setFillColor(225,225,225);doc.rect(ml,ry,cw,7,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(20,20,20);
+  doc.text('Sub-total',cx[3],ry+5);
+  doc.text(f2(f.subtotal),W-mr-2,ry+5,{align:'right'});
+  ry+=7;
+
+  // Valor en letras
+  doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(20,20,20);
+  const letLines=doc.splitTextToSize(`Valor en Letras: ${f.letras||''}`,cw*.58);
+  doc.text(letLines[0]||'',ml,ry+5.5);
+  ry+=9;
+
+  // Nombre FACTURA + N°
+  doc.setFont('helvetica','bold');doc.setFontSize(13);doc.setTextColor(20,20,20);
+  doc.text('FACTURA',ml,ry+5);
+  if(f.num){doc.setFontSize(11);doc.text(f.num,ml+30,ry+5);}
+
+  // Bloque totales (derecha)
+  const tx=W-mr-78;let ty2=ry-19;
+  const tots=[
+    ['Importe Exonerado L',f.exo||0],
+    ['Importe Exento L',f.ext||0],
+    ['Importe Gravado 15% L',f.g15||0],
+    ['Importe Gravado 18% L',f.g18||0],
+    ['ISV 15% L',f.i15||0],
+    ['ISV 18% L',f.i18||0],
+    ['Total a Pagar L',f.total||0]
+  ];
+  doc.setFont('helvetica','normal');doc.setFontSize(8.5);
+  tots.forEach(([lb,v],i)=>{
+    const last=i===tots.length-1;
+    if(last){doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.setDrawColor(40,40,40);doc.setLineWidth(0.3);doc.line(tx,ty2,W-mr,ty2);}
+    doc.setTextColor(60,60,60);doc.text(lb,tx,ty2+4.5);
+    doc.setTextColor(20,20,20);doc.text(f2(v),W-mr-1,ty2+4.5,{align:'right'});
+    ty2+=5.8;
+  });
+
+  // Pie de página SAR
+  const fy=ry+11;
+  doc.setFont('helvetica','normal');doc.setFontSize(6.8);doc.setTextColor(110,110,110);
+  doc.text('CAI: 364C35-F44808-297BE0-63BE03-0909AB-C3',ml,fy);
+  doc.text('Rango Autorizado: Del 000-001-01-00004451 al 000-001-01-00004600',ml,fy+4.5);
+  doc.text('Fecha Límite de Emisión: 29/05/2026',ml,fy+9);
+  doc.text('Original: Cliente, 1Copia: Obligado Tributario Emisor, 2Copia: Archivo',ml,fy+13.5);
+  doc.setDrawColor(40,40,40);doc.setLineWidth(0.4);doc.line(ml,fy+17,W-mr,fy+17);
+
+  return doc;
+}
+
+function genPDF(id){
+  const f=getDB().find(x=>x.id===id);if(!f)return;
+  if(!window.jspdf){alert('Librería PDF cargando, intenta en un momento.');return;}
+  buildPDF(f).save(`Factura_${(f.num||'PRUEBA').replace(/[^a-z0-9]/gi,'_')}_${f.cliente.replace(/\s+/g,'_')}.pdf`);
+}
+
+function printF(id){
+  const f=getDB().find(x=>x.id===id);if(!f)return;
+  if(!window.jspdf){alert('Librería PDF cargando, intenta en un momento.');return;}
+  const url=URL.createObjectURL(buildPDF(f).output('blob'));
+  const w=window.open(url,'_blank');
+  if(w)w.onload=()=>{w.focus();w.print();}
+  else alert('Permite ventanas emergentes para imprimir, o usa el botón PDF.');
+}
+
+// Init
+document.getElementById('f-fecha').value=new Date().toISOString().split('T')[0];
+document.getElementById('f-cambio').value=CAMBIO_DEFAULT;
+addItem();
+</script>
+</body>
+</html>
